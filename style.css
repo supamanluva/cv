@@ -160,6 +160,9 @@ html, body {
   caret-color: transparent;
   text-shadow: 0 0 5px var(--green-glow);
   min-width: 1px;
+  padding: 0;
+  margin: 0;
+  line-height: 1.55;
 }
 
 /* ── Blinking block cursor ────────────────────────────── */

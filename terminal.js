@@ -323,6 +323,228 @@ register("echo", [], "Eka tillbaka text", (args) => {
   print(`  ${span("c-white", esc(args.join(" ")))}`);
 });
 
+// ── snake ────────────────────────────────────────────────
+let snakeActive = false;
+
+register("snake", ["spel", "game", "spela"], "🐍 Spela Snake (Nokia 3310-stil)", () => {
+  if (snakeActive) return;
+  snakeActive = true;
+
+  // Hide terminal input
+  const inputLine = document.getElementById("input-line");
+  inputLine.style.display = "none";
+
+  // Game config
+  const COLS = 35;
+  const ROWS = 15;
+  const WALL_H = "═";
+  const WALL_V = "║";
+  const CORNER = { tl: "╔", tr: "╗", bl: "╚", br: "╝" };
+  const SNAKE_BODY = "█";
+  const SNAKE_HEAD = "▓";
+  const FOOD = "◆";
+  const EMPTY = " ";
+  const TICK_MS = 120;
+
+  let snake = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
+  let dir = { x: 1, y: 0 };
+  let nextDir = { x: 1, y: 0 };
+  let food = null;
+  let score = 0;
+  let highScore = parseInt(localStorage.getItem("snake-hiscore") || "0");
+  let gameOver = false;
+  let intervalId = null;
+
+  function placeFood() {
+    let pos;
+    do {
+      pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+    } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+    food = pos;
+  }
+
+  function renderBoard() {
+    const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+
+    // Place snake
+    snake.forEach((s, i) => {
+      if (s.x >= 0 && s.x < COLS && s.y >= 0 && s.y < ROWS) {
+        grid[s.y][s.x] = i === 0 ? SNAKE_HEAD : SNAKE_BODY;
+      }
+    });
+
+    // Place food
+    if (food && food.x >= 0 && food.x < COLS && food.y >= 0 && food.y < ROWS) {
+      grid[food.y][food.x] = FOOD;
+    }
+
+    // Build frame
+    let lines = [];
+    lines.push("");
+    lines.push(`  ${span("c-amber c-bold", `  🐍 SNAKE — Poäng: ${score}  |  Rekord: ${highScore}`)}`);
+    lines.push("");
+
+    // Top wall
+    lines.push(`  ${span("c-cyan", CORNER.tl + WALL_H.repeat(COLS) + CORNER.tr)}`);
+
+    // Rows
+    for (let y = 0; y < ROWS; y++) {
+      let row = "";
+      for (let x = 0; x < COLS; x++) {
+        const cell = grid[y][x];
+        if (cell === SNAKE_HEAD) {
+          row += span("c-bright", SNAKE_HEAD);
+        } else if (cell === SNAKE_BODY) {
+          row += span("c-green", SNAKE_BODY);
+        } else if (cell === FOOD) {
+          row += span("c-red", FOOD);
+        } else {
+          row += EMPTY;
+        }
+      }
+      lines.push(`  ${span("c-cyan", WALL_V)}${row}${span("c-cyan", WALL_V)}`);
+    }
+
+    // Bottom wall
+    lines.push(`  ${span("c-cyan", CORNER.bl + WALL_H.repeat(COLS) + CORNER.br)}`);
+    lines.push("");
+    lines.push(`  ${span("c-dim", "Piltangenter/WASD = styr  |  Q/ESC = avsluta")}`);
+    lines.push("");
+
+    return lines;
+  }
+
+  function renderGameOver() {
+    let lines = renderBoard();
+    lines.push(`  ${span("c-red c-bold", "  ══════ GAME OVER ══════")}`);
+    lines.push(`  ${span("c-amber", `  Slutpoäng: ${score}`)}${score >= highScore ? span("c-bright", "  ★ NYTT REKORD!") : ""}`);
+    lines.push(`  ${span("c-dim", "  Tryck ENTER för att spela igen, eller Q för att avsluta")}`);
+    lines.push("");
+    return lines;
+  }
+
+  // Game display element — replace all output
+  const savedOutput = output.innerHTML;
+  output.innerHTML = "";
+  const gameDiv = document.createElement("div");
+  gameDiv.id = "snake-game";
+  gameDiv.style.whiteSpace = "pre";
+  gameDiv.style.fontFamily = "'Fira Code', 'Fira Mono', 'Courier New', monospace";
+  gameDiv.style.fontSize = "0.85em";
+  gameDiv.style.lineHeight = "1.1";
+  output.appendChild(gameDiv);
+
+  function drawGame() {
+    const lines = gameOver ? renderGameOver() : renderBoard();
+    gameDiv.innerHTML = lines.join("\n");
+    screen.scrollTop = 0;
+  }
+
+  function tick() {
+    if (gameOver) return;
+
+    dir = { ...nextDir };
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    // Wall collision
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
+      endGame();
+      return;
+    }
+
+    // Self collision
+    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+      endGame();
+      return;
+    }
+
+    snake.unshift(head);
+
+    // Eat food
+    if (food && head.x === food.x && head.y === food.y) {
+      score += 10;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+
+    drawGame();
+  }
+
+  function endGame() {
+    gameOver = true;
+    clearInterval(intervalId);
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("snake-hiscore", String(highScore));
+    }
+    drawGame();
+  }
+
+  function resetGame() {
+    snake = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    food = null;
+    score = 0;
+    gameOver = false;
+    placeFood();
+    intervalId = setInterval(tick, TICK_MS);
+    drawGame();
+  }
+
+  function exitGame() {
+    snakeActive = false;
+    clearInterval(intervalId);
+    document.removeEventListener("keydown", gameKeyHandler, true);
+    gameDiv.remove();
+    output.innerHTML = savedOutput;
+    inputLine.style.display = "flex";
+    print(span("c-dim", `  Snake avslutad. Slutpoäng: ${score}`));
+    input.focus();
+  }
+
+  function gameKeyHandler(e) {
+    if (!snakeActive) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const key = e.key.toLowerCase();
+
+    if (key === "q" || key === "escape") {
+      exitGame();
+      return;
+    }
+
+    if (gameOver && key === "enter") {
+      resetGame();
+      return;
+    }
+
+    // Direction controls — prevent 180° turns
+    if ((key === "arrowup" || key === "w") && dir.y !== 1) {
+      nextDir = { x: 0, y: -1 };
+    } else if ((key === "arrowdown" || key === "s") && dir.y !== -1) {
+      nextDir = { x: 0, y: 1 };
+    } else if ((key === "arrowleft" || key === "a") && dir.x !== 1) {
+      nextDir = { x: -1, y: 0 };
+    } else if ((key === "arrowright" || key === "d") && dir.x !== -1) {
+      nextDir = { x: 1, y: 0 };
+    }
+  }
+
+  // Capture keys for game (capture phase so it fires before input)
+  document.addEventListener("keydown", gameKeyHandler, true);
+
+  // Blur input so it doesn't steal keypresses
+  input.blur();
+
+  // Boot the game
+  placeFood();
+  intervalId = setInterval(tick, TICK_MS);
+  drawGame();
+});
+
 // ── theme ────────────────────────────────────────────────
 register("tema", ["theme", "färg"], "Byt färgtema (green/amber/cyan/white)", (args) => {
   const themes = {
@@ -393,36 +615,35 @@ function tabComplete(partial) {
 
 // ── Input handling ───────────────────────────────────────
 input.addEventListener("keydown", (e) => {
+  // Don't handle terminal input while snake is active
+  if (snakeActive) { e.preventDefault(); return; }
   if (e.key === "Enter") {
     e.preventDefault();
-    const cmd = input.textContent.trim();
-    input.textContent = "";
+    const cmd = input.value.trim();
+    input.value = "";
     processCommand(cmd);
     scrollBottom();
   } else if (e.key === "Tab") {
     e.preventDefault();
-    const partial = input.textContent.trim();
+    const partial = input.value.trim();
     if (partial) {
       const completed = tabComplete(partial);
-      if (completed) input.textContent = completed;
+      if (completed) input.value = completed;
     }
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
     if (historyIdx > 0) {
       historyIdx--;
-      input.textContent = cmdHistory[historyIdx];
-      // Move caret to end
-      placeCaretEnd(input);
+      input.value = cmdHistory[historyIdx];
     }
   } else if (e.key === "ArrowDown") {
     e.preventDefault();
     if (historyIdx < cmdHistory.length - 1) {
       historyIdx++;
-      input.textContent = cmdHistory[historyIdx];
-      placeCaretEnd(input);
+      input.value = cmdHistory[historyIdx];
     } else {
       historyIdx = cmdHistory.length;
-      input.textContent = "";
+      input.value = "";
     }
   } else if (e.key === "l" && e.ctrlKey) {
     e.preventDefault();
@@ -430,18 +651,9 @@ input.addEventListener("keydown", (e) => {
   }
 });
 
-function placeCaretEnd(el) {
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  range.collapse(false);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-}
-
-// Click anywhere → focus input
+// Click anywhere → focus input (but not during snake)
 document.addEventListener("click", () => {
-  input.focus();
+  if (!snakeActive) input.focus();
 });
 
 // ── Power button (toggle CRT effects) ───────────────────

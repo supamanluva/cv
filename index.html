@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CV // Terminal</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
 </head>
 <body>
@@ -16,7 +17,7 @@
         <div id="output"></div>
         <div id="input-line">
           <span class="prompt">besökare@cv:~$&nbsp;</span>
-          <span id="input" contenteditable="true" spellcheck="false" autofocus></span>
+          <input id="input" type="text" spellcheck="false" autocomplete="off" autofocus />
           <span class="cursor">█</span>
         </div>
       </div>
@@ -26,6 +27,6 @@
   <audio id="keystroke" preload="auto">
     <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
   </audio>
-  <script src="terminal.js"></script>
+  <script src="terminal.js?v=2"></script>
 </body>
 </html>
