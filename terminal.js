@@ -324,7 +324,7 @@ register("echo", [], "Eka tillbaka text", (args) => {
 });
 
 // ── print / skriv ut ─────────────────────────────────────
-register("skriv", ["print", "pdf", "export"], "📄 Öppna utskriftsvänlig version (PDF)", () => {
+register("utskrift", ["print", "pdf", "export", "skriv"], "📄 Öppna utskriftsvänlig version (PDF)", () => {
   // Build a clean HTML document for printing
   const printWin = window.open("", "_blank");
   if (!printWin) {
