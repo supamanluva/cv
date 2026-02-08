@@ -323,6 +323,180 @@ register("echo", [], "Eka tillbaka text", (args) => {
   print(`  ${span("c-white", esc(args.join(" ")))}`);
 });
 
+// ── print / skriv ut ─────────────────────────────────────
+register("skriv", ["print", "pdf", "export"], "📄 Öppna utskriftsvänlig version (PDF)", () => {
+  // Build a clean HTML document for printing
+  const printWin = window.open("", "_blank");
+  if (!printWin) {
+    print(`  ${span("c-red", "Popup blockerad — tillåt popups för denna sida")}`);
+    return;
+  }
+
+  const skillsHtml = Object.entries(CV.skills).map(([cat, items]) =>
+    `<tr><td class="label">${cat}</td><td>${items.join(" · ")}</td></tr>`
+  ).join("");
+
+  const expHtml = CV.experience.map(job => `
+    <div class="job">
+      <div class="job-header">
+        <strong>${job.role}</strong> — ${job.company}
+        <span class="period">${job.period}</span>
+      </div>
+      <ul>${job.highlights.map(h => `<li>${h}</li>`).join("")}</ul>
+    </div>
+  `).join("");
+
+  const eduHtml = CV.education.map(ed => `
+    <div class="edu">
+      <strong>${ed.degree}</strong> — ${ed.school}
+      <span class="period">${ed.year}</span>
+      ${ed.note ? `<div class="note">${ed.note}</div>` : ""}
+    </div>
+  `).join("");
+
+  const projHtml = CV.projects.map(p => `
+    <div class="project">
+      <strong>${p.name}</strong> — ${p.desc}
+      <div class="tech">${p.tech} · <a href="${p.url}">${p.url}</a></div>
+    </div>
+  `).join("");
+
+  const certsHtml = CV.certifications.map(c => `<li>${c}</li>`).join("");
+
+  const interestsHtml = CV.interests.join(" · ");
+
+  printWin.document.write(`<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8" />
+<title>CV — ${CV.name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    color: #1a1a1a;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px 40px;
+  }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a1a1a; padding-bottom: 15px; }
+  .header h1 { font-size: 22pt; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .header .title { font-size: 12pt; color: #555; margin-bottom: 8px; }
+  .header .contact { font-size: 9pt; color: #666; }
+  .header .contact span { margin: 0 6px; }
+
+  /* Sections */
+  h2 {
+    font-size: 11pt;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #1a1a1a;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 3px;
+    margin: 18px 0 10px;
+  }
+
+  /* Summary */
+  .summary { color: #333; margin-bottom: 5px; font-style: italic; }
+
+  /* Skills table */
+  .skills-table { width: 100%; border-collapse: collapse; }
+  .skills-table td { padding: 3px 0; vertical-align: top; }
+  .skills-table .label { font-weight: 600; width: 110px; color: #333; }
+
+  /* Experience */
+  .job { margin-bottom: 12px; }
+  .job-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .period { color: #888; font-size: 9pt; white-space: nowrap; }
+  .job ul { margin: 4px 0 0 18px; color: #444; }
+  .job li { margin-bottom: 2px; }
+
+  /* Education */
+  .edu { margin-bottom: 8px; }
+  .edu .note { color: #666; font-size: 9.5pt; margin-top: 2px; }
+
+  /* Projects */
+  .project { margin-bottom: 8px; }
+  .project .tech { color: #888; font-size: 9pt; }
+
+  /* Certs & interests */
+  ul.plain { list-style: none; padding: 0; }
+  ul.plain li::before { content: "▸ "; color: #999; }
+
+  .interests { color: #444; }
+
+  /* Print */
+  @media print {
+    body { padding: 0; }
+    @page { margin: 15mm 18mm; size: A4; }
+  }
+
+  /* Auto-print button */
+  .print-btn {
+    display: block;
+    margin: 25px auto 0;
+    padding: 10px 30px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 11pt;
+    cursor: pointer;
+  }
+  .print-btn:hover { background: #333; }
+  @media print { .print-btn { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>${CV.name}</h1>
+  <div class="title">${CV.title}</div>
+  <div class="contact">
+    ${CV.location}<span>·</span>
+    <a href="mailto:${CV.email}">${CV.email}</a><span>·</span>
+    <a href="${CV.website}">${CV.website}</a><span>·</span>
+    <a href="${CV.github}">GitHub</a><span>·</span>
+    <a href="${CV.linkedin}">LinkedIn</a>
+  </div>
+</div>
+
+<h2>Profil</h2>
+<p class="summary">${CV.summary.join(" ")}</p>
+
+<h2>Kompetenser</h2>
+<table class="skills-table">${skillsHtml}</table>
+
+<h2>Erfarenhet</h2>
+${expHtml}
+
+<h2>Utbildning</h2>
+${eduHtml}
+
+<h2>Projekt</h2>
+${projHtml}
+
+<h2>Certifieringar</h2>
+<ul class="plain">${certsHtml}</ul>
+
+<h2>Intressen</h2>
+<p class="interests">${interestsHtml}</p>
+
+<button class="print-btn" onclick="window.print()">🖨️ Skriv ut / Spara som PDF</button>
+
+</body>
+</html>`);
+  printWin.document.close();
+  print(`  ${span("c-green", "Utskriftsvänlig version öppnad i nytt fönster")}`);
+});
+
 // ── snake ────────────────────────────────────────────────
 let snakeActive = false;
 
