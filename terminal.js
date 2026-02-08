@@ -169,7 +169,8 @@ register("hjälp", ["h", "?", "help", "kommandon"], "Visa tillgängliga kommando
     if (seen.has(cmd.name)) return;
     seen.add(cmd.name);
     const aliases = cmd.aliases.length ? span("c-dim", ` (${cmd.aliases.join(", ")})`) : "";
-    print(`  ${span("c-cyan", cmd.name.padEnd(16))}${span("c-white", cmd.desc)}${aliases}`);
+    const nameCol = `<span class="c-cyan" style="display:inline-block;width:11em">${cmd.name}</span>`;
+    print(`  ${nameCol}${span("c-white", cmd.desc)}${aliases}`);
   });
   print(sep());
   print(span("c-dim", "  Tips: använd Tab för autokomplettering, ↑↓ för historik"));
@@ -324,7 +325,7 @@ register("echo", [], "Eka tillbaka text", (args) => {
 });
 
 // ── print / skriv ut ─────────────────────────────────────
-register("utskrift", ["print", "pdf", "export", "skriv"], "📄 Öppna utskriftsvänlig version (PDF)", () => {
+register("utskrift", ["print", "pdf", "export", "skriv"], "Öppna utskriftsvänlig version (PDF)", () => {
   // Build a clean HTML document for printing
   const printWin = window.open("", "_blank");
   if (!printWin) {
@@ -500,7 +501,7 @@ ${projHtml}
 // ── snake ────────────────────────────────────────────────
 let snakeActive = false;
 
-register("snake", ["spel", "game", "spela"], "🐍 Spela Snake (Nokia 3310-stil)", () => {
+register("snake", ["spel", "game", "spela"], "Spela Snake (Nokia 3310-stil)", () => {
   if (snakeActive) return;
   snakeActive = true;
 
