@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV // Terminal</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+</head>
+<body>
+  <div id="crt">
+    <div class="scanlines"></div>
+    <div class="flicker"></div>
+    <div id="monitor">
+      <div id="screen">
+        <div id="output"></div>
+        <div id="input-line">
+          <span class="prompt">besökare@cv:~$&nbsp;</span>
+          <span id="input" contenteditable="true" spellcheck="false" autofocus></span>
+          <span class="cursor">█</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="power-btn" title="Toggle CRT effects">⏻</div>
+  <audio id="keystroke" preload="auto">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+  </audio>
+  <script src="terminal.js"></script>
+</body>
+</html>

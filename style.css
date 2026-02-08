@@ -1,0 +1,275 @@
+/* ═══════════════════════════════════════════════════════════
+   RETRO TERMINAL CV — CRT Phosphor Style
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Fira+Code:wght@400;700&family=Fira+Mono:wght@400;700&display=swap');
+
+:root {
+  /* phosphor green palette */
+  --green:        #33ff33;
+  --green-dim:    #20c020;
+  --green-bright: #66ff66;
+  --green-glow:   rgba(51, 255, 51, 0.45);
+  --amber:        #ffb000;
+  --amber-dim:    #cc8800;
+  --cyan:         #00ffff;
+  --red:          #ff3333;
+  --magenta:      #ff33ff;
+  --white:        #cccccc;
+  --bg:           #0a0a0a;
+  --bg-screen:    #0d1a0d;
+  --scanline:     rgba(0, 0, 0, 0.15);
+  --font-main:    'VT323', 'Fira Mono', 'Courier New', monospace;
+  --font-size:    1.15rem;
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ── CRT Outer Frame ──────────────────────────────────── */
+#crt {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #000 80%);
+}
+
+/* ── Monitor bezel ────────────────────────────────────── */
+#monitor {
+  position: relative;
+  width: min(98vw, 1200px);
+  height: min(92vh, 750px);
+  background: var(--bg-screen);
+  border: 3px solid #222;
+  border-radius: 18px;
+  box-shadow:
+    inset 0 0 80px rgba(0, 255, 0, 0.04),
+    0 0 30px rgba(0, 255, 0, 0.08),
+    0 0 120px rgba(0, 255, 0, 0.03);
+  overflow: hidden;
+}
+
+/* ── Scanlines overlay ────────────────────────────────── */
+.scanlines {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    var(--scanline) 2px,
+    var(--scanline) 4px
+  );
+  pointer-events: none;
+  z-index: 1000;
+  animation: scanline-scroll 8s linear infinite;
+}
+
+@keyframes scanline-scroll {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 100vh; }
+}
+
+/* ── CRT flicker ──────────────────────────────────────── */
+.flicker {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 999;
+  animation: flicker 0.15s infinite;
+  opacity: 0;
+}
+
+@keyframes flicker {
+  0%   { opacity: 0.015; }
+  50%  { opacity: 0; }
+  100% { opacity: 0.01; }
+}
+
+/* ── Screen content area ──────────────────────────────── */
+#screen {
+  position: absolute;
+  top: 20px; left: 20px; right: 20px; bottom: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 6px;
+  font-family: var(--font-main);
+  font-size: var(--font-size);
+  color: var(--green);
+  line-height: 1.55;
+  text-shadow: 0 0 5px var(--green-glow);
+  scrollbar-width: thin;
+  scrollbar-color: var(--green-dim) transparent;
+}
+
+#screen::-webkit-scrollbar { width: 6px; }
+#screen::-webkit-scrollbar-track { background: transparent; }
+#screen::-webkit-scrollbar-thumb {
+  background: var(--green-dim);
+  border-radius: 3px;
+}
+
+/* ── Output lines ─────────────────────────────────────── */
+#output {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+#output .line {
+  animation: type-in 0.02s steps(1) forwards;
+}
+
+@keyframes type-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Input line ───────────────────────────────────────── */
+#input-line {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  flex-wrap: nowrap;
+}
+
+.prompt {
+  color: var(--green-bright);
+  white-space: nowrap;
+  text-shadow: 0 0 8px var(--green-glow);
+}
+
+#input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--green);
+  font-family: var(--font-main);
+  font-size: var(--font-size);
+  caret-color: transparent;
+  text-shadow: 0 0 5px var(--green-glow);
+  min-width: 1px;
+}
+
+/* ── Blinking block cursor ────────────────────────────── */
+.cursor {
+  color: var(--green);
+  animation: blink 1s step-end infinite;
+  text-shadow: 0 0 8px var(--green-glow);
+  font-size: var(--font-size);
+  line-height: 1;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+/* ── Syntax colours ───────────────────────────────────── */
+.c-green    { color: var(--green); }
+.c-bright   { color: var(--green-bright); }
+.c-amber    { color: var(--amber); }
+.c-cyan     { color: var(--cyan); }
+.c-red      { color: var(--red); }
+.c-magenta  { color: var(--magenta); }
+.c-white    { color: var(--white); }
+.c-dim      { color: #666; }
+.c-bold     { font-weight: bold; }
+.c-heading  {
+  color: var(--amber);
+  font-weight: bold;
+  font-size: 1.3em;
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.5);
+}
+.c-subhead  {
+  color: var(--cyan);
+  font-weight: bold;
+}
+.c-separator {
+  color: var(--green-dim);
+  opacity: 0.6;
+}
+.c-key      { color: var(--amber); }
+.c-value    { color: var(--green-bright); }
+.c-link     {
+  color: var(--cyan);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.c-link:hover {
+  color: var(--green-bright);
+}
+.c-ascii {
+  color: var(--green);
+  font-family: 'Fira Code', 'Fira Mono', 'Courier New', monospace;
+  font-size: 0.72em;
+  line-height: 1.15;
+  text-shadow: 0 0 10px var(--green-glow);
+  white-space: pre;
+}
+
+/* ── Power button ─────────────────────────────────────── */
+#power-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 20px;
+  font-size: 1.6rem;
+  color: var(--green-dim);
+  cursor: pointer;
+  z-index: 2000;
+  opacity: 0.5;
+  transition: all 0.3s;
+  user-select: none;
+}
+#power-btn:hover {
+  opacity: 1;
+  color: var(--green);
+  text-shadow: 0 0 10px var(--green-glow);
+}
+#power-btn.off {
+  color: var(--red);
+}
+
+/* ── CRT off state ────────────────────────────────────── */
+body.no-crt .scanlines,
+body.no-crt .flicker { display: none; }
+body.no-crt #monitor { box-shadow: none; border-color: #333; }
+body.no-crt #screen  { text-shadow: none; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 600px) {
+  :root { --font-size: 0.95rem; }
+  #monitor { width: 100vw; height: 100vh; border-radius: 0; border: none; }
+  #screen  { top: 10px; left: 10px; right: 10px; bottom: 10px; }
+}
+
+/* ── Selection ────────────────────────────────────────── */
+::selection {
+  background: var(--green);
+  color: var(--bg);
+}
+
+/* ── Boot animation ───────────────────────────────────── */
+.boot-text {
+  animation: boot-fade 0.4s ease-in forwards;
+}
+@keyframes boot-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Table-like alignment ─────────────────────────────── */
+.info-row {
+  display: inline;
+}
